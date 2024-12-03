@@ -1,0 +1,26 @@
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+    
+    PARTS:
+    // util
+    Or(a=sel[0], b=sel[1], out=sel0OrSel1);
+    Not(in=sel[0], out=notSel0);
+    Not(in=sel[1], out=notSel1);
+    // a
+    Not(in=sel0OrSel1, out=notSel);
+    Mux16(a=false, b=a, sel=notSel, out=aOut);
+    // b
+    And(a=sel[0], b=notSel1, out=sel0AndNotSel1);
+    Mux16(a=false, b=b, sel=sel0AndNotSel1, out=bOut);
+    // c
+    And(a=sel[1], b=notSel0, out=sel1AndNotSel0);
+    Mux16(a=false, b=c, sel=sel1AndNotSel0, out=cOut);
+    // d
+    And(a=sel[0], b=sel[1], out=sel0AndSel1);
+    Mux16(a=false, b=d, sel=sel0AndSel1, out=dOut);
+    // combine
+    Or16(a=aOut, b=bOut, out=ab);
+    Or16(a=ab, b=cOut, out=abc);
+    Or16(a=abc, b=dOut, out=out);
+}

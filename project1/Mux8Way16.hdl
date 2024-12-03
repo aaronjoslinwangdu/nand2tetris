@@ -1,0 +1,50 @@
+CHIP Mux8Way16 {
+    IN a[16], b[16], c[16], d[16],
+    e[16], f[16], g[16], h[16],
+    sel[3];
+    OUT out[16];
+
+    PARTS:
+    // util
+    Not(in=sel[0], out=notSel0);
+    Not(in=sel[1], out=notSel1);
+    Not(in=sel[2], out=notSel2);
+    And(a=notSel0, b=notSel1, out=notSel0OrSel1);
+    And(a=notSel1, b=notSel2, out=notSel1OrSel2);
+    And(a=notSel0, b=notSel2, out=notSel0OrSel2);
+    And(a=sel[0], b=sel[1], out=sel0AndSel1);
+    And(a=sel[0], b=sel[2], out=sel0AndSel2);
+    And(a=sel[1], b=sel[2], out=sel1AndSel2);
+    // a
+    And(a=notSel0, b=notSel1OrSel2, out=none);
+    Mux16(a=false, b=a, sel=none, out=aOut);
+    // b
+    And(a=sel[0], b=notSel1OrSel2, out=s001);
+    Mux16(a=false, b=b, sel=s001, out=bOut);
+    // c
+    And(a=sel[1], b=notSel0OrSel2, out=s010);
+    Mux16(a=false, b=c, sel=s010, out=cOut);
+    // d
+    And(a=notSel2, b=sel0AndSel1, out=s011);
+    Mux16(a=false, b=d, sel=s011, out=dOut);
+    // e
+    And(a=sel[2], b=notSel0OrSel1, out=s100);
+    Mux16(a=false, b=e, sel=s100, out=eOut);
+    // f
+    And(a=notSel1, b=sel0AndSel2, out=s101);
+    Mux16(a=false, b=f, sel=s101, out=fOut);
+    // g
+    And(a=sel1AndSel2, b=notSel0, out=s110);
+    Mux16(a=false, b=g, sel=s110, out=gOut);
+    // h
+    And(a=sel1AndSel2, b=sel[0], out=s111);
+    Mux16(a=false, b=h, sel=s111, out=hOut);
+    // output
+    Or16(a=aOut, b=bOut, out=ab);
+    Or16(a=ab, b=cOut, out=abc);
+    Or16(a=abc, b=dOut, out=abcd);
+    Or16(a=abcd, b=eOut, out=abcde);
+    Or16(a=abcde, b=fOut, out=abcdef);
+    Or16(a=abcdef, b=gOut, out=abcdefg);
+    Or16(a=abcdefg, b=hOut, out=out);
+}
