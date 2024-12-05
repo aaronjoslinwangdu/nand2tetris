@@ -1,0 +1,52 @@
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute (out = x + y) or (out = x & y)?
+        no; // negate the out output?
+    OUT 
+        out[16], // 16-bit output
+        zr,      // if (out == 0) equals 1, else 0
+        ng;      // if (out < 0)  equals 1, else 0
+
+    PARTS:
+    // zero inputs if needed
+    Mux16(a=x, b=false, sel=zx, out=x1);
+    Mux16(a=y, b=false, sel=zy, out=y1);
+
+    // not inputs if needed
+    Not16(in=x1, out=notx1);
+    Not16(in=y1, out=noty1);
+
+    // final inputs to operate on
+    Mux16(a=x1, b=notx1, sel=nx, out=x3);
+    Mux16(a=y1, b=noty1, sel=ny, out=y3);
+
+    // get possible outputs
+    Add16(a=x3, b=y3, out=xPlusY);
+    And16(a=x3, b=y3, out=xAndY);
+
+    // set out based on f and get temp
+    Mux16(a=xAndY, b=xPlusY, sel=f, out=outTemp);
+
+    // negate output if needed
+    Not16(in=outTemp, out=negOut);
+
+    // final output
+    Mux16(a=outTemp, b=negOut, sel=no, out=out, out[0..7]=outPos, out[8..15]=outNeg);
+
+    // check if output is negative and check last 8 bits
+    Or8Way(in=outNeg, out=ng, out=anyNeg);
+    
+    // check first 8 bits and set zr
+    Or8Way(in=outPos, out=anyPos);
+
+    // check if any bits are set
+    Or(a=anyNeg, b=anyPos, out=any);
+
+    // if any bits are set, then zr is false
+    Mux(a=true, b=false, sel=any, out=zr);
+}
