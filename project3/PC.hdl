@@ -1,0 +1,20 @@
+CHIP PC {
+    IN in[16], reset, load, inc;
+    OUT out[16];
+    
+    PARTS:
+    // calculate inc
+    Inc16(in=prevout, out=previnc);
+
+    // get final value
+    Mux16(a=false, b=previnc, sel=inc, out=val1);
+    Mux16(a=val1, b=in, sel=load, out=val2);
+    Mux16(a=val2, b=false, sel=reset, out=finval);
+
+    // should we use the evaluated value?
+    Or(a=reset, b=load, out=s1);
+    Or(a=s1, b=inc, out=anyset);
+
+    // need to store prevout for next time
+    Register(in=finval, load=anyset, out=out, out=prevout);
+}
